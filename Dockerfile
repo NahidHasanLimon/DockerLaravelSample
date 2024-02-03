@@ -1,5 +1,5 @@
 FROM php:8.1-fpm
-ENV TZ=Your/Timezone
+ENV TZ=Asia/Dhaka
 # Set working directory
 WORKDIR /var/www
 
