@@ -1,5 +1,5 @@
 FROM php:8.1-fpm
-
+ENV TZ=Your/Timezone
 # Set working directory
 WORKDIR /var/www
 
@@ -24,7 +24,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     lua-zlib-dev \
     libmemcached-dev \
-    nginx
+    nginx \ 
+    tzdata \
+    nano
+# Set TimeZone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install supervisor
 RUN apt-get install -y supervisor
