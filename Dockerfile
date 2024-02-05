@@ -1,69 +1,51 @@
-FROM php:8.1-fpm
-ENV TZ=Asia/Dhaka
-# Set working directory
-WORKDIR /var/www
+FROM fhsinchy/php-nginx-base:php8.1.3-fpm-nginx1.20.2-alpine3.15
 
-# Add docker php ext repo
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+# set composer related environment variables
+ENV PATH="/composer/vendor/bin:$PATH" \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_VENDOR_DIR=/var/www/app \
+    COMPOSER_HOME=/composer
 
-# Install php extensions
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached
+# install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && composer --ansi --version --no-interaction
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    unzip \
-    git \
-    curl \
-    lua-zlib-dev \
-    libmemcached-dev \
-    nginx \ 
-    tzdata \
-    nano
-# Set TimeZone
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# install application dependencies
+WORKDIR /var/www/app
 
-# Install supervisor
-RUN apt-get install -y supervisor
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# add custom php-fpm pool settings, these get written at entrypoint startup
+ENV FPM_PM_MAX_CHILDREN=20 \
+    FPM_PM_START_SERVERS=2 \
+    FPM_PM_MIN_SPARE_SERVERS=1 \
+    FPM_PM_MAX_SPARE_SERVERS=3
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# set application environment variables
+ENV APP_NAME="Question Board" \
+    APP_ENV=development \
+    APP_DEBUG=false
 
-# Copy code to /var/www
-COPY --chown=www:www-data . /var/www
+# copy entrypoint files
+COPY ./docker/docker-php-* /usr/local/bin/
+RUN dos2unix /usr/local/bin/docker-php-entrypoint
+RUN dos2unix /usr/local/bin/docker-php-entrypoint-dev
 
-# Set permissions for Laravel cache directory
-RUN chmod -R ug+w /var/www/bootstrap/cache
+# copy nginx configuration
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/default.conf /etc/nginx/conf.d/default.conf
 
-# add root to www group
-RUN chmod -R ug+w /var/www/storage
+# copy application code
+WORKDIR /var/www/app
+COPY .   /var/www/app
 
-# Copy nginx/php/supervisor configs
-RUN cp docker/supervisor.conf /etc/supervisord.conf
-RUN cp docker/php.ini /usr/local/etc/php/conf.d/app.ini
-RUN cp docker/nginx.conf /etc/nginx/sites-enabled/default
+RUN composer install --no-scripts --no-autoloader --ansi --no-interaction
 
-# PHP Error Log Files
-RUN mkdir /var/log/php
-RUN touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log
-
-# Deployment steps
-RUN composer install --optimize-autoloader --no-dev
-RUN chmod +x /var/www/docker/run.sh
+RUN composer dump-autoload -o \
+    && chown -R :www-data /var/www/app \
+    && chmod -R 775 /var/www/app/storage /var/www/app/bootstrap/cache
 
 EXPOSE 80
-ENTRYPOINT ["/var/www/docker/run.sh"]
+
+# run supervisor
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]

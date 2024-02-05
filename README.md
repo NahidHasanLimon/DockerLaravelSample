@@ -2,8 +2,8 @@
 
 *** Only Using dockerfile ***
 
-[Ref Link learn2torials](https://learn2torials.com/a/laravel8-production-docker-image)
+[Ref Link Adeva IT](https://adevait.com/laravel/containerizing-laravel-applications-with-docker)
 
 ### known issues
 
-- Couldnot figure out why php artisan cache:clear not working [ it shows dont have enough permission ]
+- Could not solve entrypoint issue
