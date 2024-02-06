@@ -1,0 +1,52 @@
+version: '3'
+networks:
+    DockerLaravelSampleNetwork:    
+services:
+    app:
+        build:
+            context: ./
+            dockerfile: Dockerfile.app
+        container_name: app_dockerlaravel
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - DockerLaravelSampleNetwork
+        expose:
+            - 9000
+    nginx:
+        image: nginx:1.24.0
+        container_name: nginx_dockerlaravel
+        ports:
+            - "8070:8080"
+        volumes:
+            - ./:/var/www
+            - ./docker/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - app
+        restart: unless-stopped
+        networks:
+            - DockerLaravelSampleNetwork
+    cron: 
+        build: 
+            context: .
+            dockerfile: Dockerfile.cron
+        container_name: cron_dockerlaravel
+        volumes:
+            - ./:/var/www
+        restart: unless-stopped
+        networks:
+            - DockerLaravelSampleNetwork
+    
+    
+    queue_worker_supervisor:
+        build:
+            context: .
+            dockerfile: Dockerfile.supervisor
+        container_name: queue_worker_supervisor_dockerlaravel
+        volumes:
+            - ./:/var/www
+        restart: unless-stopped
+        networks:
+            - DockerLaravelSampleNetwork
