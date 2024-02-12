@@ -57,4 +57,6 @@ RUN curl -sS https://getcomposer.org/installer | \
 # Copy your Laravel application code into the container
 COPY . /var/www
 
+RUN composer install
+
 RUN apk add --no-cache docker-compose

@@ -5,7 +5,7 @@ services:
     app:
         build:
             context: ./
-            dockerfile: Dockerfile.app
+            dockerfile: app.Dockerfile
         container_name: app_dockerlaravel
         restart: unless-stopped
         working_dir: /var/www/
@@ -31,7 +31,7 @@ services:
     cron: 
         build: 
             context: .
-            dockerfile: Dockerfile.cron
+            dockerfile: cron.Dockerfile
         container_name: cron_dockerlaravel
         volumes:
             - ./:/var/www
@@ -43,7 +43,7 @@ services:
     queue_worker_supervisor:
         build:
             context: .
-            dockerfile: Dockerfile.supervisor
+            dockerfile: supervisor.Dockerfile
         container_name: queue_worker_supervisor_dockerlaravel
         volumes:
             - ./:/var/www
