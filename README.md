@@ -12,3 +12,8 @@
 ### Some Usefull/Popular Links For Docker Sample  [ Is it prodcution ready question exist !! it all does in a same cotainer !! though may use for test]
 
 https://github.com/TrafeX/docker-php-nginx/blob/master/Dockerfile
+
+
+** 
+https://www.reddit.com/r/laravel/comments/nwnion/productionready_laravel_docker_setup/ 
+A Discussion it may help 
