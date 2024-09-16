@@ -9,6 +9,6 @@
 - Couldnot figure out why php artisan cache:clear not working [ it shows dont have enough permission ]
 
 
-### Some Usefull/Popular Links For Docker 
+### Some Usefull/Popular Links For Docker Sample  [ Is it prodcution ready question exist !! it all does in a same cotainer !! though may use for test]
 
 https://github.com/TrafeX/docker-php-nginx/blob/master/Dockerfile
